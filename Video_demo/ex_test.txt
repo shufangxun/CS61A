@@ -1,0 +1,7 @@
+from ex import divide
+>>> q, r = divide(2013, 10)
+>>> q
+201
+>>> r
+3
+
