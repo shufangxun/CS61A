@@ -34,7 +34,6 @@ def roll_dice(num_rolls, dice=six_sided):
     while k < num_rolls :
         a.append(dice())
         k += 1
-
     if 1 in a :
         return 1
     else :
@@ -50,6 +49,7 @@ def free_bacon(score):
     assert score < 100, 'The game should be over.'
     # BEGIN PROBLEM 2
     "*** YOUR CODE HERE ***"
+    return 2 + abs(score // 10 - score % 10)
     # END PROBLEM 2
 
 
@@ -68,6 +68,10 @@ def take_turn(num_rolls, opponent_score, dice=six_sided):
     assert opponent_score < 100, 'The game should be over.'
     # BEGIN PROBLEM 3
     "*** YOUR CODE HERE ***"
+    if num_rolls == 0:
+        return free_bacon(opponent_score)
+    else:
+        return roll_dice(num_rolls,dice)
     # END PROBLEM 3
 
 
@@ -75,6 +79,12 @@ def is_swap(score0, score1):
     """Return whether one of the scores is an integer multiple of the other."""
     # BEGIN PROBLEM 4
     "*** YOUR CODE HERE ***"
+    if score0 <= 1 or score1 <= 1:
+        return False
+    elif (score0 != score1) and (score0 % score1 == 0) or (score1 % score0 == 0):
+        return True
+    else:
+        return False
     # END PROBLEM 4
 
 
@@ -114,6 +124,18 @@ def play(strategy0, strategy1, score0=0, score1=0, dice=six_sided,
     player = 0  # Which player is about to take a turn, 0 (first) or 1 (second)
     # BEGIN PROBLEM 5
     "*** YOUR CODE HERE ***"
+    while score0 < goal and score1 < goal :
+        if player == 0:
+            score0 += take_turn(strategy0(score0,score1),score1,dice)
+            player = other(player)
+        else:
+            score1 += take_turn(strategy1(score1,score0),score0,dice)
+            player = other(player)
+        if is_swap(score0,score1):
+            score0, score1 = score1, score0
+        say = say(score0,score1) ##Problem 6
+
+
     # END PROBLEM 5
     return score0, score1
 
@@ -189,6 +211,23 @@ def announce_highest(who, previous_high=0, previous_score=0):
     assert who == 0 or who == 1, 'The who argument should indicate a player.'
     # BEGIN PROBLEM 7
     "*** YOUR CODE HERE ***"
+    def say(score0, score1):
+        previous_high_n=previous_high     ##key point: store the value for next
+        previous_score_n=previous_score
+        if who == 0:
+           current_score = score0
+        else:
+           current_score = score1
+        gain = current_score - previous_score
+        previous_score_n= current_score  #refresh score
+        if gain > previous_high:
+            if gain == 1:
+                print(gain,"point! That's the biggest gain yet for Player", who)
+            else:
+                print(gain,"points! That's the biggest gain yet for Player",who)
+            previous_high_n = gain   #refresh high
+        return announce_highest(who, previous_high_n, previous_score_n)
+    return say
     # END PROBLEM 7
 
 
@@ -225,23 +264,48 @@ def make_averaged(fn, num_samples=1000):
     >>> averaged_dice = make_averaged(dice, 1000)
     >>> averaged_dice()
     3.0
+    >>> dice1= make_test_dice(3, 1, 5, 6)
+    >>> averaged_roll_dice = make_averaged(roll_dice, 1000)
+    >>> averaged_roll_dice(2, dice)
+    >>>
+    6.0
     """
     # BEGIN PROBLEM 8
     "*** YOUR CODE HERE ***"
+    def do(*args):
+        s = 0.0
+        for _ in range(num_samples):
+            s += fn(*args)
+        return s / num_samples
+    return do
     # END PROBLEM 8
 
 
 def max_scoring_num_rolls(dice=six_sided, num_samples=1000):
-    """Return the number of dice (1 to 10) that gives the highest average turn
+    """Return the number of rolls (1 to 10) that gives the highest average turn
     score by calling roll_dice with the provided DICE over NUM_SAMPLES times.
     Assume that the dice always return positive outcomes.
 
     >>> dice = make_test_dice(1, 6)
     >>> max_scoring_num_rolls(dice)
     1
+    >>> dice1 = make_test_dice(2)
+    >>> max_scoring_num_rolls(dice1)
+    10
     """
     # BEGIN PROBLEM 9
     "*** YOUR CODE HERE ***"
+    #sum  = roll_dice(num_rolls, dice)
+    num_rolls, target_roll, highest_average = 1, 1, 0
+    while num_rolls < 11:
+        averaged_dice = make_averaged(roll_dice, num_samples)
+        current_average = averaged_dice(num_rolls, dice)
+        if current_average > highest_average :  ##guarantee the minium roll
+            target_roll, highest_average = num_rolls, current_average
+        num_rolls += 1
+    return target_roll
+
+
     # END PROBLEM 9
 
 
@@ -288,9 +352,17 @@ def run_experiments():
 def bacon_strategy(score, opponent_score, margin=8, num_rolls=4):
     """This strategy rolls 0 dice if that gives at least MARGIN points, and
     rolls NUM_ROLLS otherwise.
+    >>> bacon_strategy(50, 70, margin=8, num_rolls=5)
+    0
+    >>>  bacon_strategy(0, 0, margin=8, num_rolls=5)
+    5
     """
+
     # BEGIN PROBLEM 10
-    return 4  # Replace this statement
+    if free_bacon(opponent_score) >= margin :
+        return 0
+    else :
+        return num_rolls
     # END PROBLEM 10
 
 
@@ -300,7 +372,12 @@ def swap_strategy(score, opponent_score, margin=8, num_rolls=4):
     NUM_ROLLS.
     """
     # BEGIN PROBLEM 11
-    return 4  # Replace this statement
+    if is_swap(score, opponent_score) :
+        return 0
+    elif free_bacon(opponent_score) >= margin :
+        return 0
+    else:
+        return num_rolls
     # END PROBLEM 11
 
 
