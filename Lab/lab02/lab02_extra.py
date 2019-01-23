@@ -70,6 +70,15 @@ def count_cond(condition):
     8
     """
     "*** YOUR CODE HERE ***"
+    def do(n):
+        i, count = 1, 0
+        while i <= n :
+            if condition(n, i) :
+                 count += 1
+            i += 1
+        return count
+    return do
+
 
 def cycle(f1, f2, f3):
     """Returns a function that is itself a higher-order function.
@@ -98,3 +107,16 @@ def cycle(f1, f2, f3):
     19
     """
     "*** YOUR CODE HERE ***"
+    def choose(n):
+        def generate(x):
+            for i in range(n+1):
+                if i % 3 == 0 :
+                    x = f1(x)
+                elif i % 3 == 1:
+                    x = lambda x : f1(x)
+                elif i % 3 == 2:
+                    x = lambda x : f2(x)
+                elif i % 3 == 3:
+                    x = lambda x : f3(x)
+        return generate
+    return choose
