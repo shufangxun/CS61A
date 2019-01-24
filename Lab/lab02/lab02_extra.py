@@ -109,14 +109,15 @@ def cycle(f1, f2, f3):
     "*** YOUR CODE HERE ***"
     def choose(n):
         def generate(x):
-            for i in range(n+1):
-                if i % 3 == 0 :
+            i = 1
+            while i <= n :
+                if i % 3 == 1 :
                     x = f1(x)
-                elif i % 3 == 1:
-                    x = lambda x : f1(x)
                 elif i % 3 == 2:
-                    x = lambda x : f2(x)
-                elif i % 3 == 3:
-                    x = lambda x : f3(x)
+                    x = f2(x)
+                elif i % 3 == 0:    ## not i % 3 == 3
+                    x = f3(x)
+                i += 1
+            return x
         return generate
     return choose
